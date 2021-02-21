@@ -3,8 +3,11 @@ import itertools
 class CrossedWires:
   def __init__(self):
     self.wire1 = []
+    self.sorted_wire1 = []
     self.wire2 = []
+    self.sorted_wire2 = []
     self.intersections = []
+    self.closest_intersection = (0,0)
 
   def FillMap(self, input, wire):
     x = px = y = py = 0
@@ -38,20 +41,34 @@ class CrossedWires:
     return wire
 
   def GetIntersections(self):
-    self.wire1.sort(key=lambda tup: (tup[0],tup[1]))
-    self.wire2.sort(key=lambda tup: (tup[0],tup[1]))
+    self.sorted_wire1 = sorted(self.wire1, key=lambda tup: (tup[0],tup[1]))
+    self.sorted_wire2 = sorted(self.wire2, key=lambda tup: (tup[0],tup[1]))
     
-    for elem in self.wire1:
-      for x in self.wire2:
+    for elem in self.sorted_wire1:
+      for x in self.sorted_wire2:
         if elem == x:
           self.intersections.append(elem)
         #Brute force search not fast enough since coordinate system is huge
         #Need to trim front of second list when possible
-        while self.wire2 and self.wire2[0][0] < elem[0]:
-          self.wire2.pop(0)
+        while self.sorted_wire2 and self.sorted_wire2[0][0] < elem[0]:
+          self.sorted_wire2.pop(0)
         #Need to stop looking if not needed
         if x[0] > elem[0]:
           break
+
+  def CalculateSteps(self):
+    min_steps = 9999999
+    for intersection in self.intersections:
+      steps = 0
+      for i in range(len(self.wire1)):
+        if self.wire1[i] == intersection:
+          steps = i
+      for i in range(len(self.wire2)):
+        if self.wire2[i] == intersection:
+          steps += i
+      if steps < min_steps:
+        min_steps = steps
+    return min_steps
 
   def CalculateShortestDistanse(self):
     shortest = 999999999
@@ -61,6 +78,7 @@ class CrossedWires:
       distance = abs(intersection[0]) + abs(intersection[1])
       if distance < shortest:
         shortest = distance
+        self.closest_intersection = intersection
     return shortest
 
   def Run(self):
@@ -69,6 +87,7 @@ class CrossedWires:
     self.FillMap(f.readline().split(','), self.wire2)
     self.GetIntersections()
     print(self.CalculateShortestDistanse())
+    print(self.CalculateSteps())
 
   
 if __name__ == "__main__":
